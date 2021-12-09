@@ -159,6 +159,8 @@ initialize_database_with_store(Key, Store, Force) :-
 
     initialize_system_instance(Store, System_Schema, Key, Force).
 
+% FIXME! These tests should go into `src/config/terminus_config.pl`, but I
+% couldn't run them when they were there.
 :- begin_tests(env_vars).
 
 test("TERMINUSDB_INSECURE_USER_HEADER_ENABLED is not set",
