@@ -23,7 +23,8 @@
               log_format/1,
               set_log_format/1,
               clear_log_format/0,
-              insecure_user_header_key/1
+              insecure_user_header_key/1,
+              check_all_env_vars/0
           ]).
 
 :- use_module(core(util)).
@@ -229,3 +230,18 @@ insecure_user_header_key(Header_Key) :-
     re_replace("-"/g, "_", Lower_String, Lower_String_No_Dashes),
     atom_string(Header_Key, Lower_String_No_Dashes),
     assertz(insecure_user_header_key_(Header_Key)).
+
+/**
+ * check_all_env_vars is det.
+ *
+ * Load and check all env vars.
+ *
+ * This should be done at initialization, so that the error-checking is
+ * performed as soon as possible and the the user is notified of any errors.
+ *
+ * Note that nothing should go wrong if this is not called. All of the
+ * predicates referenced here can be called at any time. This is only done to
+ * improve the user experience.
+ */
+check_all_env_vars :-
+    ignore(insecure_user_header_key(_)).
