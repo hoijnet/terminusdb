@@ -5,7 +5,6 @@
               server_name/1,
               server_port/1,
               worker_amount/1,
-              insecure_user_header/1,
               max_transaction_retries/1,
               index_template/1,
               default_database_path/1,
@@ -24,14 +23,12 @@
               log_format/1,
               set_log_format/1,
               clear_log_format/0,
-              check_env_vars/0
+              insecure_user_header_key/1
           ]).
 
 :- use_module(core(util)).
 
 version('10.0.13').
-env_insecure_user_header('TERMINUSDB_INSECURE_USER_HEADER').
-env_insecure_user_header_enabled('TERMINUSDB_INSECURE_USER_HEADER_ENABLED').
 
 bootstrap_config_files :-
     initialize_system_ssl_certs.
@@ -55,15 +52,6 @@ server_port(Value) :-
 
 worker_amount(Value) :-
     getenv_default_number('TERMINUSDB_SERVER_WORKERS', 8, Value).
-
-insecure_user_header(Header_Key) :-
-    env_insecure_user_header_enabled(Env_Insecure_User_Header_Enabled),
-    getenv(Env_Insecure_User_Header_Enabled, true),
-    env_insecure_user_header(Env_Insecure_User_Header),
-    getenv(Env_Insecure_User_Header, Value),
-    string_lower(Value, Lower_String),
-    re_replace("-"/g, "_", Lower_String, Lower_String_No_Dashes),
-    atom_string(Header_Key, Lower_String_No_Dashes).
 
 :- table max_transaction_retries/1 as shared.
 max_transaction_retries(Value) :-
@@ -194,15 +182,50 @@ set_log_format(Log_Format) :-
 clear_log_format :-
     retractall(log_format_override(_)).
 
-check_insecure_user_header :-
-    env_insecure_user_header(Env_Insecure_User_Header),
-    getenv(Env_Insecure_User_Header, Value),
-    (   re_match("[A-Za-z0-9-]+", Value)
-    ->  true
-    ;   throw(error(invalid_insecure_user_header(Value)))).
+:- dynamic check_insecure_user_header_enabled_/1.
 
-check_env_vars :-
-    env_insecure_user_header_enabled(Env_Insecure_User_Header_Enabled),
-    (   getenv(Env_Insecure_User_Header_Enabled, true)
-    ->  check_insecure_user_header
-    ;   true).
+/* Retract the dynamic predicate for testing. */
+clear_check_insecure_user_header_enabled :-
+    retractall(check_insecure_user_header_enabled_(_)).
+
+/**
+ * check_insecure_user_header_enabled(-Enabled) is semidet.
+ *
+ * Look up the env var for enabling the insecure user header.
+ */
+check_insecure_user_header_enabled(Enabled) :-
+    check_insecure_user_header_enabled_(Enabled),
+    !.
+check_insecure_user_header_enabled(Enabled) :-
+    Env_Var = 'TERMINUSDB_INSECURE_USER_HEADER_ENABLED',
+    getenv_default(Env_Var, false, Enabled),
+    die_if(\+ memberchk(Enabled, [false, true]),
+           error(bad_env_var_value(Env_Var, Enabled), _)),
+    assertz(check_insecure_user_header_enabled_(Enabled)).
+
+:- dynamic insecure_user_header_key_/1.
+
+/* Retract the dynamic predicate for testing. */
+clear_insecure_user_header_key :-
+    retractall(insecure_user_header_key_(_)).
+
+/**
+ * insecure_user_header_key(-Header_Key) is semidet.
+ *
+ * Check if the insecure user header is enabled, look up the env var for the
+ * insecure user header, and convert it to a key for checking an HTTP request.
+ */
+insecure_user_header_key(Header_Key) :-
+    insecure_user_header_key_(Header_Key),
+    !.
+insecure_user_header_key(Header_Key) :-
+    check_insecure_user_header_enabled(true),
+    Env_Var = 'TERMINUSDB_INSECURE_USER_HEADER',
+    do_or_die(getenv(Env_Var, Value),
+              error(missing_env_var(Env_Var), _)),
+    die_if(\+ re_match("[A-Za-z0-9-]+", Value),
+           error(bad_env_var_value(Env_Var, Value), _)),
+    string_lower(Value, Lower_String),
+    re_replace("-"/g, "_", Lower_String, Lower_String_No_Dashes),
+    atom_string(Header_Key, Lower_String_No_Dashes),
+    assertz(insecure_user_header_key_(Header_Key)).
