@@ -144,7 +144,7 @@ test(connection_authorised_user_http_basic, [
     http_get(URL, _, [authorization(basic(admin, Key))]).
 
 
-test(connection_authorised_user_forwarded_header, [
+test(connection_authorised_insecure_user_header, [
          setup(setup_temp_server(State, Server, [env_vars([
                                      'TERMINUSDB_INSECURE_USER_HEADER_ENABLED'=true,
                                      'TERMINUSDB_INSECURE_USER_HEADER'='X-Forwarded-User'
@@ -158,7 +158,7 @@ test(connection_authorised_user_forwarded_header, [
     DB_Name = 'TEST_DB'.
 
 
-test(connection_unauthorised_user_forwarded_header, [
+test(connection_unauthorised_insecure_user_header, [
          setup(setup_temp_server(State, Server, [env_vars([
                                      'TERMINUSDB_INSECURE_USER_HEADER_ENABLED'=true,
                                      'TERMINUSDB_INSECURE_USER_HEADER'='X-Forwarded-User'
