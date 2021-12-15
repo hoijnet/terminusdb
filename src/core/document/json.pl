@@ -1622,7 +1622,7 @@ get_document(DB, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     database_prefixes(DB,Prefixes),
     get_document(DB, Prefixes, Compress_Ids, Unfold, Data_Version_Option, Id, Document).
 
-get_document(DB, Prefixes, Compress_Ids, Unfold, _Data_Version_Option, Id, Document) :-
+get_document(DB, Prefixes, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     database_instance(DB,Instance),
 
     prefix_expand(Id,Prefixes,Id_Ex),
