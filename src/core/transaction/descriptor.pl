@@ -20,7 +20,8 @@
               collection_descriptor_graph_filter_graph_descriptor/3,
               collection_descriptor_prefixes/2,
               collection_descriptor_default_write_graph/2,
-              descriptor_to_loggable/2
+              descriptor_to_loggable/2,
+              check_transaction_data_version/2
           ]).
 
 /** <module> Descriptor Manipulation
@@ -1073,6 +1074,10 @@ collection_descriptor_default_write_graph(Descriptor, Graph_Descriptor) :-
                                       type: instance
                                      }.
 collection_descriptor_default_write_graph(_, empty).
+
+check_transaction_data_version(_Transaction_Object, no_data_version).
+check_transaction_data_version(_Transaction_Object, data_version(_Data_Version_Label, _Data_Version_Value)) :-
+    format(user_error, "check_transaction_data_version~n").
 
 :- begin_tests(open_descriptor).
 :- use_module(core(util/test_utils)).

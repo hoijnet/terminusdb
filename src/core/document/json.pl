@@ -1606,7 +1606,7 @@ get_document_by_type(DB, Type, Document) :-
     get_document(DB, Document_Uri, Document).
 
 get_document(Resource, Id, Document) :-
-    get_document(Resource, true, true, none, Id, Document).
+    get_document(Resource, true, true, no_data_version, Id, Document).
 
 get_document(Query_Context, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     is_query_context(Query_Context),

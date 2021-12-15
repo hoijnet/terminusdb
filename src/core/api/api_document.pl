@@ -85,6 +85,7 @@ api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, U
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     api_generate_documents_(Schema_Or_Instance, Transaction, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document).
 
@@ -104,6 +105,7 @@ api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, U
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     api_generate_documents_by_type_(Graph_Type, Transaction, Type, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document).
 
@@ -116,6 +118,7 @@ api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, 
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     do_or_die(Graph_Type = instance,
               error(query_is_only_supported_for_instance_graphs, _)),
@@ -143,6 +146,8 @@ api_get_document(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold,
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
+
     api_get_document_(Schema_Or_Instance, Transaction, Compress_Ids, Unfold, Data_Version_Option, Id, Document).
 
 embed_document_in_error(Error, Document, New_Error) :-
@@ -350,7 +355,7 @@ insert_some_cities(System, Path) :-
   "@id" : "City/Utrecht",
   "name" : "Utrecht" }',
                 Stream),
-    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, none, Stream, _Out_Ids).
+    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, no_data_version, Stream, _Out_Ids).
 
 test(delete_objects_with_stream,
      [setup((setup_temp_store(State),
@@ -361,7 +366,7 @@ test(delete_objects_with_stream,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('"City/Dublin" "City/Pretoria"', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", none, Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", no_data_version, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -381,7 +386,7 @@ test(delete_objects_with_string,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('["City/Dublin", "City/Pretoria"]', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", none, Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", no_data_version, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -401,7 +406,7 @@ test(delete_objects_with_mixed_string_stream,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('"City/Dublin"\n["City/Pretoria"]', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", none, Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", no_data_version, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -430,7 +435,7 @@ insert_some_cities(System, Path) :-
   "@id" : "City/Utrecht",
   "name" : "Utrecht" }',
                 Stream),
-    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, none, Stream, _Out_Ids).
+    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, no_data_version, Stream, _Out_Ids).
 
 test(replace_objects_with_stream,
      [setup((setup_temp_store(State),
@@ -447,7 +452,7 @@ test(replace_objects_with_stream,
 { "@type": "City",
   "@id" : "City/Pretoria",
   "name" : "Tshwane" }', Stream),
-    api_replace_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream, false, none, Ids),
+    api_replace_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream, false, no_data_version, Ids),
 
     Ids = ['http://example.com/data/world/City/Dublin','http://example.com/data/world/City/Pretoria'].
 

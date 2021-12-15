@@ -753,9 +753,15 @@ test(get_bad_descriptor, [
                  prefix,
                  methods([options,post,delete,get,put])]).
 
-get_data_version_header(Request, some(Data_Version)) :-
-    memberchk(terminusdb_data_version(Data_Version), Request).
-get_data_version_header(_Request, none).
+get_data_version(Request, data_version(Data_Version_Label, Data_Version_Value)) :-
+    memberchk(terminusdb_data_version(Data_Version), Request),
+    !,
+    (   sub_atom(Data_Version, 0, _, Data_Version_Value, 'layer_version:')
+    ->  Data_Version_Label = layer_version
+    ;   sub_atom(Data_Version, 0, _, Data_Version_Value, 'commit_version:')
+    ->  Data_Version_Label = commit_version
+    ;   throw(error(bad_data_version(Data_Version), _))).
+get_data_version(_Request, no_data_version).
 
 ensure_json_header_written(Request, As_List, Header_Written) :-
     Header_Written = written(Written),
@@ -820,7 +826,7 @@ document_handler(get, Path, Request, System_DB, Auth) :-
             ->  JSON_Options = [width(0)]
             ;   JSON_Options = []),
 
-            get_data_version_header(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version_Option),
 
             Header_Written = written(_),
             (   nonvar(Query) % dictionaries do not need tags to be bound
@@ -862,7 +868,7 @@ document_handler(post, Path, Request, System_DB, Auth) :-
             param_value_search_graph_type(Search, Graph_Type),
             param_value_search_optional(Search, full_replace, boolean, false, Full_Replace),
 
-            get_data_version_header(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version_Option),
 
             api_insert_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Full_Replace, Data_Version_Option, Stream, Ids),
 
@@ -886,7 +892,7 @@ document_handler(delete, Path, Request, System_DB, Auth) :-
             param_value_search_optional(Search, nuke, boolean, false, Nuke),
             param_value_search_optional(Search, id, atom, _, Id),
 
-            get_data_version_header(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version_Option),
 
             (   Nuke = true
             ->  api_nuke_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option)
@@ -916,7 +922,7 @@ document_handler(put, Path, Request, System_DB, Auth) :-
             param_value_search_graph_type(Search, Graph_Type),
             param_value_search_optional(Search, create, boolean, false, Create),
 
-            get_data_version_header(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version_Option),
 
             api_replace_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Stream, Create, Data_Version_Option, Ids),
 
