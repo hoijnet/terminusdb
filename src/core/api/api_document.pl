@@ -214,7 +214,7 @@ replace_existing_graph(instance, Transaction, Stream) :-
     forall(api_insert_document_(instance, Transaction, Stream, _),
            true).
 
-api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Full_Replace, _Data_Version_Option, Stream, Ids) :-
+api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Full_Replace, Data_Version_Option, Stream, Ids) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -224,6 +224,7 @@ api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     stream_property(Stream, position(Pos)),
 
@@ -243,7 +244,7 @@ api_delete_document_(schema, Transaction, Id) :-
 api_delete_document_(instance, Transaction, Id) :-
     delete_document(Transaction, Id).
 
-api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _Data_Version_Option, Stream) :-
+api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Data_Version_Option, Stream) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -253,6 +254,7 @@ api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     stream_property(Stream, position(Pos)),
 
@@ -267,7 +269,7 @@ api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
                              api_delete_document_(Schema_Or_Instance, Transaction, ID))),
                      _).
 
-api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _Data_Version_Option, ID) :-
+api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Data_Version_Option, ID) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -277,6 +279,7 @@ api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     with_transaction(Context,
                      api_delete_document_(Schema_Or_Instance, Transaction, ID),
@@ -287,7 +290,7 @@ api_nuke_documents_(schema, Transaction) :-
 api_nuke_documents_(instance, Transaction) :-
     nuke_documents(Transaction).
 
-api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _Data_Version_Option) :-
+api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Data_Version_Option) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -297,6 +300,7 @@ api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _D
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     with_transaction(Context,
                      api_nuke_documents_(Schema_Or_Instance, Transaction),
@@ -307,7 +311,7 @@ api_replace_document_(instance, Transaction, Document, Create, Id):-
 api_replace_document_(schema, Transaction, Document, Create, Id):-
     replace_schema_document(Transaction, Document, Create, Id).
 
-api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream, Create, _Data_Version_Option, Ids) :-
+api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream, Create, Data_Version_Option, Ids) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -319,6 +323,7 @@ api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message,
         error(unresolvable_collection(Descriptor), _)),
 
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     stream_property(Stream, position(Pos)),
 
