@@ -1466,14 +1466,14 @@ set_list(DB,Id,P,Set) :-
     setof(V,xrdf(Instance,Id,P,V),Set),
     !.
 
-list_type_id_predicate_value([],_,_,_,_,_,_,_,_,[]).
+list_type_id_predicate_value([],_,_,_,_,_,_,_,_,_,[]).
 list_type_id_predicate_value([O|T],C,Id,P,Recursion,DB,Prefixes,Compress_Ids,Unfold,Data_Version_Option,[V|L]) :-
     type_id_predicate_iri_value(C,Id,P,O,Recursion,DB,Prefixes,Compress_Ids,Unfold,Data_Version_Option,V),
     list_type_id_predicate_value(T,C,Id,P,Recursion,DB,Prefixes,Compress_Ids,Unfold,Data_Version_Option,L).
 
-type_id_predicate_iri_value(enum(C,_),_,_,V,_,_,_,_,_,O) :-
+type_id_predicate_iri_value(enum(C,_),_,_,V,_,_,_,_,_,_,O) :-
     enum_value(C, O, V).
-type_id_predicate_iri_value(foreign(_),_,_,Id,_,_,Prefixes,Compress_Ids,_,Value) :-
+type_id_predicate_iri_value(foreign(_),_,_,Id,_,_,Prefixes,Compress_Ids,_,_,Value) :-
     (   Compress_Ids = true
     ->  compress_dict_uri(Id, Prefixes, Value)
     ;   Value = Id
