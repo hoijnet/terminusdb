@@ -827,7 +827,7 @@ document_handler(get, Path, Request, System_DB, Auth) :-
             ->  forall(api_generate_documents_by_query(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Data_Version_Option, Document),
                        json_write_with_header(Request, Document, Header_Written, As_List, JSON_Options))
             ;   ground(Id)
-            ->  api_get_document(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Id, Data_Version_Option, Document),
+            ->  api_get_document(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Data_Version_Option, Id, Document),
                 json_write_with_header(Request, Document, Header_Written, As_List, JSON_Options)
             ;   ground(Type)
             ->  forall(api_generate_documents_by_type(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Data_Version_Option, Document),
