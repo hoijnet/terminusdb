@@ -824,15 +824,15 @@ document_handler(get, Path, Request, System_DB, Auth) :-
 
             Header_Written = written(_),
             (   nonvar(Query) % dictionaries do not need tags to be bound
-            ->  forall(api_generate_documents_by_query(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Document),
+            ->  forall(api_generate_documents_by_query(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Data_Version_Option, Document),
                        json_write_with_header(Request, Document, Header_Written, As_List, JSON_Options))
             ;   ground(Id)
-            ->  api_get_document(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Id, Document),
+            ->  api_get_document(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Id, Data_Version_Option, Document),
                 json_write_with_header(Request, Document, Header_Written, As_List, JSON_Options)
             ;   ground(Type)
-            ->  forall(api_generate_documents_by_type(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Document),
+            ->  forall(api_generate_documents_by_type(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Data_Version_Option, Document),
                        json_write_with_header(Request, Document, Header_Written, As_List, JSON_Options))
-            ;   forall(api_generate_documents(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Skip, Count, Document),
+            ;   forall(api_generate_documents(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document),
                        json_write_with_header(Request, Document, Header_Written, As_List, JSON_Options))),
 
             % ensure the header has been written by now.

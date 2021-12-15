@@ -1,8 +1,8 @@
 :- module(api_document, [
-              api_generate_documents/9,
-              api_generate_documents_by_type/10,
-              api_generate_documents_by_query/11,
-              api_get_document/8,
+              api_generate_documents/10,
+              api_generate_documents_by_type/11,
+              api_generate_documents_by_query/12,
+              api_get_document/9,
               api_insert_documents/9,
               api_delete_documents/7,
               api_delete_document/7,
@@ -76,7 +76,7 @@ api_generate_documents_(schema, Transaction, _Prefixed, Unfold, Skip, Count, Doc
     api_generate_document_uris_(schema, Transaction, Unfold, Skip, Count, Uri),
     get_schema_document(Transaction, Uri, Document).
 
-api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Skip, Count, Document) :-
+api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Skip, Count, _Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -95,7 +95,7 @@ api_generate_documents_by_type_(instance, Transaction, Type, Compress_Ids, Unfol
     api_generate_document_uris_by_type_(instance, Transaction, Type, Skip, Count, Uri),
     get_document(Transaction, Compress_Ids, Unfold, Uri, Document).
 
-api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Document) :-
+api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, _Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -107,7 +107,7 @@ api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, U
 
     api_generate_documents_by_type_(Graph_Type, Transaction, Type, Compress_Ids, Unfold, Skip, Count, Document).
 
-api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Document) :-
+api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, _Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -134,7 +134,7 @@ api_get_document_(schema, Transaction, _Prefixed, _Unfold, Id, Document) :-
     do_or_die(get_schema_document(Transaction, Id, Document),
               error(document_not_found(Id), _)).
 
-api_get_document(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Id, Document) :-
+api_get_document(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Id, _Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
