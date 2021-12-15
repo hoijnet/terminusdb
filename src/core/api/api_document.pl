@@ -68,9 +68,9 @@ api_generate_document_uris_by_type_(schema, Transaction, Type, Skip, Count, Uri)
         Skip,
         Count).
 
-api_generate_documents_(instance, Transaction, Compress_Ids, Unfold, Skip, Count, _Data_Version_Option, Document) :-
+api_generate_documents_(instance, Transaction, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document) :-
     api_generate_document_uris_(instance, Transaction, Unfold, Skip, Count, Uri),
-    get_document(Transaction, Compress_Ids, Unfold, Uri, Document).
+    get_document(Transaction, Compress_Ids, Unfold, Data_Version_Option, Uri, Document).
 
 api_generate_documents_(schema, Transaction, _Prefixed, Unfold, Skip, Count, _Data_Version_Option, Document) :-
     api_generate_document_uris_(schema, Transaction, Unfold, Skip, Count, Uri),
@@ -91,9 +91,9 @@ api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, U
 api_generate_documents_by_type_(schema, Transaction, Type, _Prefixed, _Unfold, Skip, Count, _Data_Version_Option, Document) :-
     api_generate_document_uris_by_type_(schema, Transaction, Type, Skip, Count, Uri),
     get_schema_document(Transaction, Uri, Document).
-api_generate_documents_by_type_(instance, Transaction, Type, Compress_Ids, Unfold, Skip, Count, _Data_Version_Option, Document) :-
+api_generate_documents_by_type_(instance, Transaction, Type, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document) :-
     api_generate_document_uris_by_type_(instance, Transaction, Type, Skip, Count, Uri),
-    get_document(Transaction, Compress_Ids, Unfold, Uri, Document).
+    get_document(Transaction, Compress_Ids, Unfold, Data_Version_Option, Uri, Document).
 
 api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Data_Version_Option, Document) :-
     do_or_die(
@@ -107,7 +107,7 @@ api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, U
 
     api_generate_documents_by_type_(Graph_Type, Transaction, Type, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document).
 
-api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, _Data_Version_Option, Document) :-
+api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -124,10 +124,10 @@ api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, 
         match_query_document_uri(Transaction, Type, Query, Uri),
         Skip,
         Count),
-    get_document(Transaction, Compress_Ids, Unfold, Uri, Document).
+    get_document(Transaction, Compress_Ids, Unfold, Data_Version_Option, Uri, Document).
 
-api_get_document_(instance, Transaction, Compress_Ids, Unfold, _Data_Version_Option, Id, Document) :-
-    do_or_die(get_document(Transaction, Compress_Ids, Unfold, Id, Document),
+api_get_document_(instance, Transaction, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
+    do_or_die(get_document(Transaction, Compress_Ids, Unfold, Data_Version_Option, Id, Document),
               error(document_not_found(Id), _)).
 
 api_get_document_(schema, Transaction, _Prefixed, _Unfold, _Data_Version_Option, Id, Document) :-

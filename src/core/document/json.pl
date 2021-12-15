@@ -8,7 +8,7 @@
               json_schema_triple/3,
               json_schema_elaborate/3,
               get_document/3,
-              get_document/5,
+              get_document/6,
               get_document_uri/3,
               get_schema_document/3,
               get_schema_document_uri/2,
@@ -1606,23 +1606,23 @@ get_document_by_type(DB, Type, Document) :-
     get_document(DB, Document_Uri, Document).
 
 get_document(Resource, Id, Document) :-
-    get_document(Resource, true, true, Id, Document).
+    get_document(Resource, true, true, none, Id, Document).
 
-get_document(Query_Context, Compress_Ids, Unfold, Id, Document) :-
+get_document(Query_Context, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     is_query_context(Query_Context),
     !,
     query_default_collection(Query_Context, TO),
-    get_document(TO, Compress_Ids, Unfold, Id, Document).
-get_document(Desc, Compress_Ids, Unfold, Id, Document) :-
+    get_document(TO, Compress_Ids, Unfold, Data_Version_Option, Id, Document).
+get_document(Desc, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     is_descriptor(Desc),
     !,
     open_descriptor(Desc,Transaction),
-    get_document(Transaction, Compress_Ids, Unfold, Id, Document).
-get_document(DB, Compress_Ids, Unfold, Id, Document) :-
+    get_document(Transaction, Compress_Ids, Unfold, Data_Version_Option, Id, Document).
+get_document(DB, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     database_prefixes(DB,Prefixes),
-    get_document(DB, Prefixes, Compress_Ids, Unfold, Id, Document).
+    get_document(DB, Prefixes, Compress_Ids, Unfold, Data_Version_Option, Id, Document).
 
-get_document(DB, Prefixes, Compress_Ids, Unfold, Id, Document) :-
+get_document(DB, Prefixes, Compress_Ids, Unfold, _Data_Version_Option, Id, Document) :-
     database_instance(DB,Instance),
 
     prefix_expand(Id,Prefixes,Id_Ex),

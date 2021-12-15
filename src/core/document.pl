@@ -25,7 +25,7 @@
               replace_json_schema/2,
 
               get_document/3,
-              get_document/5,
+              get_document/6,
               get_document_uri/3,
               get_schema_document/3,
               get_schema_document_uri/2,
