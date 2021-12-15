@@ -337,7 +337,11 @@ api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message,
                                      ;   Document = JSON),
                                      call_catch_document_mutation(
                                          Document,
-                                         api_replace_document_(Schema_Or_Instance, Transaction, Document, Create, Id))
+                                         api_replace_document_(Schema_Or_Instance,
+                                                               Transaction,
+                                                               Document,
+                                                               Create,
+                                                               Id))
                                  ),
                                  Ids),
                          die_if(has_duplicates(Ids, Duplicates), error(same_ids_in_one_transaction(Duplicates), _))
