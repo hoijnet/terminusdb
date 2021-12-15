@@ -1634,7 +1634,7 @@ get_document(DB, Prefixes, Compress_Ids, Unfold, _Data_Version_Option, Id, Docum
             \+ is_built_in(P),
 
             once(class_predicate_type(DB,Class,P,Type)),
-            type_id_predicate_iri_value(Type,Id_Ex,P,O,get_document,DB,Prefixes,Compress_Ids,Unfold,Value),
+            type_id_predicate_iri_value(Type,Id_Ex,P,O,get_document,DB,Prefixes,Compress_Ids,Unfold,Data_Version_Option,Value),
 
             (   Compress_Ids = true
             ->  compress_schema_uri(P, Prefixes, Prop)
