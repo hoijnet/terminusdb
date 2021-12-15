@@ -862,7 +862,9 @@ document_handler(post, Path, Request, System_DB, Auth) :-
             param_value_search_graph_type(Search, Graph_Type),
             param_value_search_optional(Search, full_replace, boolean, false, Full_Replace),
 
-            api_insert_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Full_Replace, Stream, Ids),
+            get_data_version_header(Request, Data_Version_Option),
+
+            api_insert_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Full_Replace, Data_Version_Option, Stream, Ids),
 
             write_cors_headers(Request),
             reply_json(Ids),
@@ -884,12 +886,14 @@ document_handler(delete, Path, Request, System_DB, Auth) :-
             param_value_search_optional(Search, nuke, boolean, false, Nuke),
             param_value_search_optional(Search, id, atom, _, Id),
 
+            get_data_version_header(Request, Data_Version_Option),
+
             (   Nuke = true
-            ->  api_nuke_documents(System_DB, Auth, Path, Graph_Type, Author, Message)
+            ->  api_nuke_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option)
             ;   ground(Id)
-            ->  api_delete_document(System_DB, Auth, Path, Graph_Type, Author, Message, Id)
+            ->  api_delete_document(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option, Id)
             ;   http_read_json_semidet(stream(Stream), Request)
-            ->  api_delete_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Stream)
+            ->  api_delete_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option, Stream)
             ;   throw(error(missing_targets, _))
             ),
 
@@ -912,7 +916,9 @@ document_handler(put, Path, Request, System_DB, Auth) :-
             param_value_search_graph_type(Search, Graph_Type),
             param_value_search_optional(Search, create, boolean, false, Create),
 
-            api_replace_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Stream, Create, Ids),
+            get_data_version_header(Request, Data_Version_Option),
+
+            api_replace_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Stream, Create, Data_Version_Option, Ids),
 
             write_cors_headers(Request),
             reply_json(Ids),

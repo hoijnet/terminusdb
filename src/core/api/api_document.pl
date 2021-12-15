@@ -3,11 +3,11 @@
               api_generate_documents_by_type/11,
               api_generate_documents_by_query/12,
               api_get_document/9,
-              api_insert_documents/9,
-              api_delete_documents/7,
-              api_delete_document/7,
-              api_replace_documents/9,
-              api_nuke_documents/6
+              api_insert_documents/10,
+              api_delete_documents/8,
+              api_delete_document/8,
+              api_replace_documents/10,
+              api_nuke_documents/7
           ]).
 
 :- use_module(core(util)).
@@ -209,7 +209,7 @@ replace_existing_graph(instance, Transaction, Stream) :-
     forall(api_insert_document_(instance, Transaction, Stream, _),
            true).
 
-api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Full_Replace, Stream, Ids) :-
+api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Full_Replace, _Data_Version_Option, Stream, Ids) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -238,7 +238,7 @@ api_delete_document_(schema, Transaction, Id) :-
 api_delete_document_(instance, Transaction, Id) :-
     delete_document(Transaction, Id).
 
-api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream) :-
+api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _Data_Version_Option, Stream) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -262,7 +262,7 @@ api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
                              api_delete_document_(Schema_Or_Instance, Transaction, ID))),
                      _).
 
-api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, ID) :-
+api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _Data_Version_Option, ID) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -282,7 +282,7 @@ api_nuke_documents_(schema, Transaction) :-
 api_nuke_documents_(instance, Transaction) :-
     nuke_documents(Transaction).
 
-api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message) :-
+api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, _Data_Version_Option) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -302,7 +302,7 @@ api_replace_document_(instance, Transaction, Document, Create, Id):-
 api_replace_document_(schema, Transaction, Document, Create, Id):-
     replace_schema_document(Transaction, Document, Create, Id).
 
-api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream, Create, Ids) :-
+api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream, Create, _Data_Version_Option, Ids) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -354,7 +354,7 @@ insert_some_cities(System, Path) :-
   "@id" : "City/Utrecht",
   "name" : "Utrecht" }',
                 Stream),
-    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, Stream, _Out_Ids).
+    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, none, Stream, _Out_Ids).
 
 test(delete_objects_with_stream,
      [setup((setup_temp_store(State),
@@ -365,7 +365,7 @@ test(delete_objects_with_stream,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('"City/Dublin" "City/Pretoria"', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", none, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -385,7 +385,7 @@ test(delete_objects_with_string,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('["City/Dublin", "City/Pretoria"]', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", none, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -405,7 +405,7 @@ test(delete_objects_with_mixed_string_stream,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('"City/Dublin"\n["City/Pretoria"]', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", none, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -434,7 +434,7 @@ insert_some_cities(System, Path) :-
   "@id" : "City/Utrecht",
   "name" : "Utrecht" }',
                 Stream),
-    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, Stream, _Out_Ids).
+    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, none, Stream, _Out_Ids).
 
 test(replace_objects_with_stream,
      [setup((setup_temp_store(State),
@@ -451,7 +451,7 @@ test(replace_objects_with_stream,
 { "@type": "City",
   "@id" : "City/Pretoria",
   "name" : "Tshwane" }', Stream),
-    api_replace_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream, false, Ids),
+    api_replace_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream, false, none, Ids),
 
     Ids = ['http://example.com/data/world/City/Dublin','http://example.com/data/world/City/Pretoria'].
 

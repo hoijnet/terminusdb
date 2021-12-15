@@ -114,11 +114,11 @@
               api_generate_documents_by_type/11,
               api_generate_documents_by_query/12,
               api_get_document/9,
-              api_insert_documents/9,
-              api_delete_documents/7,
-              api_delete_document/7,
-              api_replace_documents/9,
-              api_nuke_documents/6,
+              api_insert_documents/10,
+              api_delete_documents/8,
+              api_delete_document/8,
+              api_replace_documents/10,
+              api_nuke_documents/7,
 
               % api_user_organizations.pl
               user_organizations/3
