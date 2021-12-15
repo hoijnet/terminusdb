@@ -753,6 +753,10 @@ test(get_bad_descriptor, [
                  prefix,
                  methods([options,post,delete,get,put])]).
 
+get_data_version_header(Request, some(Data_Version)) :-
+    memberchk(terminusdb_data_version(Data_Version), Request).
+get_data_version_header(_Request, none).
+
 ensure_json_header_written(Request, As_List, Header_Written) :-
     Header_Written = written(Written),
     (   var(Written)
@@ -815,6 +819,8 @@ document_handler(get, Path, Request, System_DB, Auth) :-
             (   Minimized = true
             ->  JSON_Options = [width(0)]
             ;   JSON_Options = []),
+
+            get_data_version_header(Request, Data_Version_Option),
 
             Header_Written = written(_),
             (   nonvar(Query) % dictionaries do not need tags to be bound
