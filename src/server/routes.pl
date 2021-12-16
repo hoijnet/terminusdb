@@ -763,6 +763,10 @@ get_data_version(Request, data_version(Data_Version_Label, Data_Version_Value)) 
     ;   throw(error(bad_data_version(Data_Version), _))).
 get_data_version(_Request, no_data_version).
 
+write_data_version_header(no_data_version).
+write_data_version_header(data_version(Data_Version_Label, Data_Version_Value)) :-
+    format("TerminusDB-Data-Version: ~s:~s~n", [Data_Version_Label, Data_Version_Value]),
+
 ensure_json_header_written(Request, As_List, Header_Written) :-
     Header_Written = written(Written),
     (   var(Written)
