@@ -1078,6 +1078,8 @@ collection_descriptor_default_write_graph(_, empty).
 get_transaction_data_version(_Transaction_Object, Data_Version_Label, Data_Version_Value) :-
     Data_Version_Label = "label",
     Data_Version_Value = "value".
+get_transaction_data_version(Transaction_Object, _Data_Version_Label, _Data_Version_Value) :-
+    throw(error(unexpected_argument_instantiation(get_transaction_data_version, Transaction_Object), _)).
 
 check_transaction_data_version(_Transaction_Object, no_data_version) :-
     format(user_error, "check_transaction_data_version: no_data_version~n", []).
