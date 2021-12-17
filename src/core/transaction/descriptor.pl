@@ -1075,10 +1075,17 @@ collection_descriptor_default_write_graph(Descriptor, Graph_Descriptor) :-
                                      }.
 collection_descriptor_default_write_graph(_, empty).
 
+get_transaction_data_version(_Transaction_Object, Data_Version_Label, Data_Version_Value) :-
+    Data_Version_Label = "label",
+    Data_Version_Value = "value".
+
 check_transaction_data_version(_Transaction_Object, no_data_version) :-
     format(user_error, "check_transaction_data_version: no_data_version~n", []).
-check_transaction_data_version(_Transaction_Object, data_version(Data_Version_Label, Data_Version_Value)) :-
-    format(user_error, "check_transaction_data_version: data_version(~q, ~q)~n", [Data_Version_Label, Data_Version_Value]).
+check_transaction_data_version(Transaction_Object, data_version(_Data_Version_Label_Requested, _Data_Version_Value_Requested)) :-
+    get_transaction_data_version(Transaction_Object, Data_Version_Label_Transaction, Data_Version_Value_Transaction),
+    format(user_error, "check_transaction_data_version: data_version(~q, ~q)~n", [Data_Version_Label_Transaction, Data_Version_Value_Transaction]).
+check_transaction_data_version(_Transaction_Object, Data_Version) :-
+    throw(error(unexpected_argument_instantiation(check_transaction_data_version, Data_Version), _)).
 
 :- begin_tests(open_descriptor).
 :- use_module(core(util/test_utils)).

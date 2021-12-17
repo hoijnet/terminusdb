@@ -762,10 +762,14 @@ get_data_version(Request, data_version(Data_Version_Label, Data_Version_Value)) 
     ->  Data_Version_Label = commit_version
     ;   throw(error(bad_data_version(Data_Version), _))).
 get_data_version(_Request, no_data_version).
+get_data_version(_Request, Data_Version) :-
+    throw(error(unexpected_argument_instantiation(get_data_version, Data_Version), _)).
 
 write_data_version_header(no_data_version).
 write_data_version_header(data_version(Data_Version_Label, Data_Version_Value)) :-
-    format("TerminusDB-Data-Version: ~s:~s~n", [Data_Version_Label, Data_Version_Value]),
+    format("TerminusDB-Data-Version: ~s:~s~n", [Data_Version_Label, Data_Version_Value]).
+write_data_version_header(Data_Version) :-
+    throw(error(unexpected_argument_instantiation(write_data_version_header, Data_Version), _)).
 
 document_handler(get, Path, Request, System_DB, Auth) :-
     api_report_errors(
@@ -799,20 +803,20 @@ document_handler(get, Path, Request, System_DB, Auth) :-
             ->  JSON_Options = [width(0)]
             ;   JSON_Options = []),
 
-            get_data_version(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version),
 
             cors_json_stream_start(Stream_Started),
 
             (   nonvar(Query) % dictionaries do not need tags to be bound
-            ->  forall(api_generate_documents_by_query(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Data_Version_Option, Document),
+            ->  forall(api_generate_documents_by_query(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Data_Version, Document),
                        cors_json_stream_write_dict(Request, As_List, Stream_Started, Document, JSON_Options))
             ;   ground(Id)
-            ->  api_get_document(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Data_Version_Option, Id, Document),
+            ->  api_get_document(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Data_Version, Id, Document),
                 cors_json_stream_write_dict(Request, As_List, Stream_Started, Document, JSON_Options)
             ;   ground(Type)
-            ->  forall(api_generate_documents_by_type(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Data_Version_Option, Document),
+            ->  forall(api_generate_documents_by_type(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Data_Version, Document),
                        cors_json_stream_write_dict(Request, As_List, Stream_Started, Document, JSON_Options))
-            ;   forall(api_generate_documents(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document),
+            ;   forall(api_generate_documents(System_DB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Skip, Count, Data_Version, Document),
                        cors_json_stream_write_dict(Request, As_List, Stream_Started, Document, JSON_Options))),
 
             cors_json_stream_end(Request, As_List, Stream_Started)
@@ -837,9 +841,9 @@ document_handler(post, Path, Request, System_DB, Auth) :-
             param_value_search_graph_type(Search, Graph_Type),
             param_value_search_optional(Search, full_replace, boolean, false, Full_Replace),
 
-            get_data_version(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version),
 
-            api_insert_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Full_Replace, Data_Version_Option, Stream, Ids),
+            api_insert_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Full_Replace, Data_Version, Stream, Ids),
 
             write_cors_headers(Request),
             reply_json(Ids),
@@ -861,14 +865,14 @@ document_handler(delete, Path, Request, System_DB, Auth) :-
             param_value_search_optional(Search, nuke, boolean, false, Nuke),
             param_value_search_optional(Search, id, atom, _, Id),
 
-            get_data_version(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version),
 
             (   Nuke = true
-            ->  api_nuke_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option)
+            ->  api_nuke_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version)
             ;   ground(Id)
-            ->  api_delete_document(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option, Id)
+            ->  api_delete_document(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version, Id)
             ;   http_read_json_semidet(stream(Stream), Request)
-            ->  api_delete_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version_Option, Stream)
+            ->  api_delete_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Data_Version, Stream)
             ;   throw(error(missing_targets, _))
             ),
 
@@ -891,9 +895,9 @@ document_handler(put, Path, Request, System_DB, Auth) :-
             param_value_search_graph_type(Search, Graph_Type),
             param_value_search_optional(Search, create, boolean, false, Create),
 
-            get_data_version(Request, Data_Version_Option),
+            get_data_version(Request, Data_Version),
 
-            api_replace_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Stream, Create, Data_Version_Option, Ids),
+            api_replace_documents(System_DB, Auth, Path, Graph_Type, Author, Message, Stream, Create, Data_Version, Ids),
 
             write_cors_headers(Request),
             reply_json(Ids),
