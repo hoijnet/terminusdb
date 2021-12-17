@@ -1,13 +1,13 @@
 :- module(api_document, [
-              api_generate_documents/9,
-              api_generate_documents_by_type/10,
-              api_generate_documents_by_query/11,
-              api_get_document/8,
-              api_insert_documents/9,
-              api_delete_documents/7,
-              api_delete_document/7,
-              api_replace_documents/9,
-              api_nuke_documents/6
+              api_generate_documents/10,
+              api_generate_documents_by_type/11,
+              api_generate_documents_by_query/12,
+              api_get_document/9,
+              api_insert_documents/10,
+              api_delete_documents/8,
+              api_delete_document/8,
+              api_replace_documents/10,
+              api_nuke_documents/7
           ]).
 
 :- use_module(core(util)).
@@ -76,7 +76,7 @@ api_generate_documents_(schema, Transaction, _Prefixed, Unfold, Skip, Count, Doc
     api_generate_document_uris_(schema, Transaction, Unfold, Skip, Count, Uri),
     get_schema_document(Transaction, Uri, Document).
 
-api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Skip, Count, Document) :-
+api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Skip, Count, Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -85,6 +85,7 @@ api_generate_documents(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, U
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     api_generate_documents_(Schema_Or_Instance, Transaction, Compress_Ids, Unfold, Skip, Count, Document).
 
@@ -95,7 +96,7 @@ api_generate_documents_by_type_(instance, Transaction, Type, Compress_Ids, Unfol
     api_generate_document_uris_by_type_(instance, Transaction, Type, Skip, Count, Uri),
     get_document(Transaction, Compress_Ids, Unfold, Uri, Document).
 
-api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Document) :-
+api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Skip, Count, Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -104,10 +105,11 @@ api_generate_documents_by_type(SystemDB, Auth, Path, Graph_Type, Compress_Ids, U
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     api_generate_documents_by_type_(Graph_Type, Transaction, Type, Compress_Ids, Unfold, Skip, Count, Document).
 
-api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Document) :-
+api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, Unfold, Type, Query, Skip, Count, Data_Version_Option, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -116,6 +118,7 @@ api_generate_documents_by_query(SystemDB, Auth, Path, Graph_Type, Compress_Ids, 
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     do_or_die(Graph_Type = instance,
               error(query_is_only_supported_for_instance_graphs, _)),
@@ -134,7 +137,7 @@ api_get_document_(schema, Transaction, _Prefixed, _Unfold, Id, Document) :-
     do_or_die(get_schema_document(Transaction, Id, Document),
               error(document_not_found(Id), _)).
 
-api_get_document(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Id, Document) :-
+api_get_document(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold, Data_Version_Option, Id, Document) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -143,6 +146,8 @@ api_get_document(SystemDB, Auth, Path, Schema_Or_Instance, Compress_Ids, Unfold,
 
     do_or_die(open_descriptor(Descriptor, Transaction),
               error(unresolvable_collection(Descriptor), _)),
+    check_transaction_data_version(Transaction, Data_Version_Option),
+
     api_get_document_(Schema_Or_Instance, Transaction, Compress_Ids, Unfold, Id, Document).
 
 embed_document_in_error(Error, Document, New_Error) :-
@@ -209,7 +214,7 @@ replace_existing_graph(instance, Transaction, Stream) :-
     forall(api_insert_document_(instance, Transaction, Stream, _),
            true).
 
-api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Full_Replace, Stream, Ids) :-
+api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Full_Replace, Data_Version_Option, Stream, Ids) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -219,6 +224,7 @@ api_insert_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     stream_property(Stream, position(Pos)),
 
@@ -238,7 +244,7 @@ api_delete_document_(schema, Transaction, Id) :-
 api_delete_document_(instance, Transaction, Id) :-
     delete_document(Transaction, Id).
 
-api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream) :-
+api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Data_Version_Option, Stream) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -248,6 +254,7 @@ api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     stream_property(Stream, position(Pos)),
 
@@ -262,7 +269,7 @@ api_delete_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, 
                              api_delete_document_(Schema_Or_Instance, Transaction, ID))),
                      _).
 
-api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, ID) :-
+api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Data_Version_Option, ID) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -272,6 +279,7 @@ api_delete_document(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, I
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     with_transaction(Context,
                      api_delete_document_(Schema_Or_Instance, Transaction, ID),
@@ -282,7 +290,7 @@ api_nuke_documents_(schema, Transaction) :-
 api_nuke_documents_(instance, Transaction) :-
     nuke_documents(Transaction).
 
-api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message) :-
+api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Data_Version_Option) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -292,6 +300,7 @@ api_nuke_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message) :-
     do_or_die(create_context(Descriptor, commit_info{author: Author, message: Message}, Context),
               error(unresolvable_collection(Descriptor), _)),
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     with_transaction(Context,
                      api_nuke_documents_(Schema_Or_Instance, Transaction),
@@ -302,7 +311,7 @@ api_replace_document_(instance, Transaction, Document, Create, Id):-
 api_replace_document_(schema, Transaction, Document, Create, Id):-
     replace_schema_document(Transaction, Document, Create, Id).
 
-api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream, Create, Ids) :-
+api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message, Stream, Create, Data_Version_Option, Ids) :-
     do_or_die(
         resolve_absolute_string_descriptor(Path, Descriptor),
         error(invalid_path(Path),_)),
@@ -314,6 +323,7 @@ api_replace_documents(SystemDB, Auth, Path, Schema_Or_Instance, Author, Message,
         error(unresolvable_collection(Descriptor), _)),
 
     query_default_collection(Context, Transaction),
+    check_transaction_data_version(Transaction, Data_Version_Option),
 
     stream_property(Stream, position(Pos)),
 
@@ -354,7 +364,7 @@ insert_some_cities(System, Path) :-
   "@id" : "City/Utrecht",
   "name" : "Utrecht" }',
                 Stream),
-    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, Stream, _Out_Ids).
+    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, no_data_version, Stream, _Out_Ids).
 
 test(delete_objects_with_stream,
      [setup((setup_temp_store(State),
@@ -365,7 +375,7 @@ test(delete_objects_with_stream,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('"City/Dublin" "City/Pretoria"', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", no_data_version, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -385,7 +395,7 @@ test(delete_objects_with_string,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('["City/Dublin", "City/Pretoria"]', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", no_data_version, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -405,7 +415,7 @@ test(delete_objects_with_mixed_string_stream,
     insert_some_cities(System, 'admin/foo'),
 
     open_string('"City/Dublin"\n["City/Pretoria"]', Stream),
-    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream),
+    api_delete_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", no_data_version, Stream),
 
     resolve_absolute_string_descriptor("admin/foo", Descriptor),
     create_context(Descriptor, Context),
@@ -434,7 +444,7 @@ insert_some_cities(System, Path) :-
   "@id" : "City/Utrecht",
   "name" : "Utrecht" }',
                 Stream),
-    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, Stream, _Out_Ids).
+    api_insert_documents(System, 'User/admin', Path, instance, "author", "message", false, no_data_version, Stream, _Out_Ids).
 
 test(replace_objects_with_stream,
      [setup((setup_temp_store(State),
@@ -451,7 +461,7 @@ test(replace_objects_with_stream,
 { "@type": "City",
   "@id" : "City/Pretoria",
   "name" : "Tshwane" }', Stream),
-    api_replace_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream, false, Ids),
+    api_replace_documents(system_descriptor{}, 'User/admin', 'admin/foo', instance, "author", "message", Stream, false, no_data_version, Ids),
 
     Ids = ['http://example.com/data/world/City/Dublin','http://example.com/data/world/City/Pretoria'].
 
