@@ -1092,8 +1092,10 @@ get_transaction_data_version(Transaction_Object, _Data_Version_Label, _Data_Vers
     throw(error(unexpected_argument_instantiation(get_transaction_data_version, Transaction_Object), _)).
 
 check_transaction_data_version(_Transaction_Object, no_data_version) :-
+    !,
     format(user_error, "check_transaction_data_version: no_data_version~n", []).
 check_transaction_data_version(Transaction_Object, data_version(_Data_Version_Label_Requested, _Data_Version_Value_Requested)) :-
+    !,
     get_transaction_data_version(Transaction_Object, Data_Version_Label_Transaction, Data_Version_Value_Transaction),
     format(user_error, "check_transaction_data_version: data_version(~q, ~q)~n", [Data_Version_Label_Transaction, Data_Version_Value_Transaction]).
 check_transaction_data_version(_Transaction_Object, Data_Version) :-
