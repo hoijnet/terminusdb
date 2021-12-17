@@ -756,10 +756,10 @@ test(get_bad_descriptor, [
 get_data_version(Request, data_version(Data_Version_Label, Data_Version_Value)) :-
     memberchk(terminusdb_data_version(Data_Version), Request),
     !,
-    (   sub_atom(Data_Version, 0, _, Data_Version_Value, 'layer_version:')
-    ->  Data_Version_Label = layer_version
-    ;   sub_atom(Data_Version, 0, _, Data_Version_Value, 'commit_version:')
-    ->  Data_Version_Label = commit_version
+    (   sub_atom(Data_Version, 0, _, Data_Version_Value, 'layer:')
+    ->  Data_Version_Label = layer
+    ;   sub_atom(Data_Version, 0, _, Data_Version_Value, 'commit:')
+    ->  Data_Version_Label = commit
     ;   throw(error(bad_data_version(Data_Version), _))).
 get_data_version(_Request, no_data_version).
 get_data_version(_Request, Data_Version) :-
