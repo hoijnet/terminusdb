@@ -1095,10 +1095,17 @@ get_transaction_data_version(Transaction_Object, _Data_Version_Label, _Data_Vers
 check_transaction_data_version(_Transaction_Object, no_data_version) :-
     !,
     format(user_error, "check_transaction_data_version: no_data_version~n", []).
-check_transaction_data_version(Transaction_Object, data_version(_Data_Version_Label_Requested, _Data_Version_Value_Requested)) :-
+check_transaction_data_version(Transaction_Object, data_version(Data_Version_Label_Requested, Data_Version_Value_Requested)) :-
     !,
+    format(user_error, "check_transaction_data_version: Requested: ~a:~a~n", [Data_Version_Label_Requested, Data_Version_Value_Requested]),
     get_transaction_data_version(Transaction_Object, Data_Version_Label_Transaction, Data_Version_Value_Transaction),
-    format(user_error, "check_transaction_data_version: data_version(~q, ~q)~n", [Data_Version_Label_Transaction, Data_Version_Value_Transaction]).
+    format(user_error, "check_transaction_data_version: Transaction: ~a:~a~n", [Data_Version_Label_Transaction, Data_Version_Value_Transaction]),
+    atomic_list_concat([Data_Version_Label_Requested, ':', Data_Version_Value_Requested], Data_Version_Requested),
+    atomic_list_concat([Data_Version_Label_Transaction, ':', Data_Version_Value_Transaction], Data_Version_Transaction),
+    die_if(
+        Data_Version_Requested \= Data_Version_Transaction,
+        error(data_version_mismatch(Data_Version_Requested, Data_Version_Transaction), _)).
+
 check_transaction_data_version(_Transaction_Object, Data_Version) :-
     throw(error(unexpected_argument_instantiation(check_transaction_data_version, Data_Version), _)).
 
