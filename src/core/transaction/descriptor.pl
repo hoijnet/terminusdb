@@ -1081,9 +1081,10 @@ get_transaction_data_version(Transaction_Object, Data_Version_Label, Data_Versio
         descriptor : system_descriptor{},
         instance_objects : [Instance_Object|_]
     } :< Transaction_Object,
-    read_write_obj{
-        read : Layer
-    } :< Instance_Object,
+    !,
+    do_or_die(
+        read_write_obj{ read : Layer } :< Instance_Object,
+        error(bad_system_transaction_instance_object(Instance_Object), _)),
     !,
     layer_to_id(Layer, Layer_Id),
     Data_Version_Label = layer,
